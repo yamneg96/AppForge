@@ -67,7 +67,7 @@ export function AppDetailsPage() {
           transition={{ duration: 0.5 }}
         >
           <div className="rounded-2xl border border-primary/20 bg-primary/10 p-1 shadow-xl shadow-primary/5">
-            <div className="flex h-24 w-24 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-indigo-600 text-5xl text-white md:h-32 md:w-32">
+            <div className="flex h-24 w-24 items-center justify-center rounded-xl bg-linear-to-br from-primary to-indigo-600 text-5xl text-white md:h-32 md:w-32">
               {app.icon || "🚀"}
             </div>
           </div>
@@ -153,11 +153,11 @@ export function AppDetailsPage() {
               {app.screenshots.map((screenshot: string, idx: number) => (
                 <motion.div
                   key={idx}
-                  className="flex min-w-[280px] snap-start flex-col gap-4"
+                  className="flex min-w-70 snap-start flex-col gap-4"
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="relative aspect-[9/16] overflow-hidden rounded-2xl border border-slate-300 bg-slate-200 shadow-md dark:border-primary/20 dark:bg-primary/10">
+                  <div className="relative aspect-9/16 overflow-hidden rounded-2xl border border-slate-300 bg-slate-200 shadow-md dark:border-primary/20 dark:bg-primary/10">
                     <img
                       src={screenshot}
                       alt={`Screenshot ${idx + 1}`}

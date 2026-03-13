@@ -19,9 +19,8 @@ export function Login() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as
-    | string
-    | undefined;
+  const googleClientId =
+    (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || "";
   const showFallback = !googleClientId || Boolean(googleError);
 
   // Redirect if already authenticated

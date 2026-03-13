@@ -26,7 +26,7 @@ if (!rootElement.innerHTML) {
     <React.StrictMode>
       <ThemeProvider>
         <GoogleOAuthProvider
-          clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID as string}
+          clientId={(import.meta.env.VITE_GOOGLE_CLIENT_ID as string) || ""}
         >
           <AuthProvider>
             <QueryClientProvider client={queryClient}>

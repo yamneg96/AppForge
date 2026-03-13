@@ -16,12 +16,7 @@ export function ContactPage() {
     resolver: zodResolver(contactSchema),
   })
 
-  const {
-    mutate: submitContact,
-    isPending,
-    isSuccess,
-    isError,
-  } = useContactMutation()
+  const { mutate: submitContact, isPending, isError } = useContactMutation()
   const [showSuccess, setShowSuccess] = useState(false)
 
   const onSubmit = (data: ContactForm) => {
@@ -35,7 +30,7 @@ export function ContactPage() {
   }
 
   return (
-    <div className="dark:from-background-dark dark:to-background-dark/50 from-background-50 to-background-100 min-h-screen bg-gradient-to-b px-6 py-20">
+    <div className="dark:from-background-dark dark:to-background-dark/50 from-background-50 to-background-100 min-h-screen bg-linear-to-b px-6 py-20">
       <motion.div
         className="mx-auto max-w-2xl"
         initial={{ opacity: 0, y: 20 }}
@@ -71,10 +66,7 @@ export function ContactPage() {
             exit={{ opacity: 0, y: -10 }}
             className="mb-6 flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-500/20 dark:bg-green-500/10"
           >
-            <CheckCircle
-              className="mt-0.5 flex-shrink-0 text-green-500"
-              size={20}
-            />
+            <CheckCircle className="mt-0.5 shrink-0 text-green-500" size={20} />
             <div>
               <p className="font-bold text-green-900 dark:text-green-100">
                 Message sent successfully!
@@ -94,10 +86,7 @@ export function ContactPage() {
             exit={{ opacity: 0, y: -10 }}
             className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-500/20 dark:bg-red-500/10"
           >
-            <AlertCircle
-              className="mt-0.5 flex-shrink-0 text-red-500"
-              size={20}
-            />
+            <AlertCircle className="mt-0.5 shrink-0 text-red-500" size={20} />
             <div>
               <p className="font-bold text-red-900 dark:text-red-100">
                 Error sending message

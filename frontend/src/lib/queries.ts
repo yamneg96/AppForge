@@ -5,7 +5,10 @@ import type { ContactForm } from "./schemas"
 export const useApps = () => {
   return useQuery({
     queryKey: ["apps"],
-    queryFn: () => api.apps.list(),
+    queryFn: async () => {
+      const response = await api.apps.list()
+      return response.apps || []
+    },
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 }

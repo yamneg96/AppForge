@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { ArrowRight, Zap } from "lucide-react"
+import { useApps } from "@/lib/queries"
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -153,64 +154,7 @@ export function LandingPage() {
             </p>
           </motion.div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                name: "FitTrack Pro",
-                desc: "Personalized fitness coaching with real-time biometric tracking.",
-                status: "Live on Store",
-                image:
-                  "https://lh3.googleusercontent.com/aida-public/AB6AXuDR9dsn8NLPt3MLsR9Gz5zpVJr1OmRNrceH_bBspwvVsT5r3Psis4qHIYJr-Adnbfyys9XvB7oVMM3N5HOh2zEjhdsenqfC-_d86j8TWj9d9Syt5BsxPaP-gYrG3NkLhHklFkK8ZKIMH4Fazh52-efQ7Etdy0OtBb15GwcMZaSSws6MwBczS3R_WvVEOXjjFcZoB08riqc_24cuFcitNEoIFO15TL885TckSA6p6lvMI3s2Ql1H5ROvCnnZIZbyyGeEeuECvhP6MknC",
-              },
-              {
-                name: "EcoMarket",
-                desc: "A sustainable marketplace connecting local farmers with urban consumers.",
-                status: "Beta Release",
-                image:
-                  "https://lh3.googleusercontent.com/aida-public/AB6AXuBUDNK2NLt9Up194MdtgYGB_K-jbpblnauG0iFM9pHFYJtROm3uwzQKonOa2178Jw5amNeEXiioRQj25V3YMZPexTFzrQrL9SYp6HvszsTvSl3zkrZ2YofASzdsg0Q8tcua0Qw2WBjxRDwhyIvGARIQqALnMIP5UraapN6j-zWd3QOiN6J1KusdqJHVT1o3ukjoY7f4rM4FLCiX8125Nw_ZpdjJuQOlAXCzl7dJQ38u4-S2WjZ2hsBpAZjy7MkzUx47g0DO3LJ9J7A1",
-              },
-              {
-                name: "ZenFlow",
-                desc: "Meditation and sleep aid application with spatial audio integration.",
-                status: "In Review",
-                image:
-                  "https://lh3.googleusercontent.com/aida-public/AB6AXuCW0iQwvG7ebxmwbdT0dTg6ueUjfLU3wtZs-iKmh6kfE8hrnLwKXgLBgNzWE17RbDMgNioG9VgTuO5FbDyhKyGb73jHwyETOacOELmVRvW-Wke3FGOKL3A-4JBnONWx_q4-TPBgRGcuTbSSWmA7X3D1c4Vbxd0mlh2J2v1SfrX5sk3mJaP0AySfgwrVLkEb1XKB2nxpbP-87Jfpe63NrXewf5YEN1DJoKTaJFJlJ46w1fMY8B1WHgeyXkGOmAy7arKWYMBj-OS9mK8S",
-              },
-            ].map((app, idx) => (
-              <motion.div
-                key={idx}
-                className="group dark:bg-background-dark/50 relative rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 dark:border-white/5"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5 }}
-              >
-                <div className="mb-6 aspect-[4/3] overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
-                  <img
-                    alt={app.name}
-                    src={app.image}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="rounded bg-green-500/10 px-2.5 py-1 text-[10px] font-bold text-green-500 uppercase">
-                    {app.status}
-                  </span>
-                  <div className="flex gap-1">
-                    <Zap size={14} className="text-slate-400" />
-                  </div>
-                </div>
-                <h4 className="mb-1 text-xl font-bold text-slate-900 dark:text-white">
-                  {app.name}
-                </h4>
-                <p className="mb-6 text-sm text-slate-500">{app.desc}</p>
-                <button className="w-full rounded-lg border border-slate-200 py-3 text-sm font-bold transition-all hover:border-primary hover:bg-primary hover:text-white dark:border-white/10">
-                  View Project
-                </button>
-              </motion.div>
-            ))}
-          </div>
+          <FeaturedAppsSection />
         </motion.div>
       </section>
 
@@ -235,6 +179,76 @@ export function LandingPage() {
           </button>
         </motion.div>
       </section>
+    </div>
+  )
+}
+
+function FeaturedAppsSection() {
+  const { data: apps = [], isLoading } = useApps()
+  const displayApps = apps.slice(0, 3)
+
+  if (isLoading) {
+    return (
+      <div className="py-20 text-center">
+        <div className="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
+        <p className="mt-4 text-slate-600 dark:text-slate-400">
+          Loading apps...
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      {displayApps.map((app: any, idx: number) => (
+        <Link key={app._id} to="/app/$slug" params={{ slug: app.slug }}>
+          <motion.div
+            className="group dark:bg-background-dark/50 relative h-full cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 dark:border-white/5"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: idx * 0.1 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+          >
+            <div className="mb-6 aspect-[4/3] overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+              {app.screenshots?.[0] ? (
+                <img
+                  alt={app.name}
+                  src={app.screenshots[0]}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 text-4xl text-primary">
+                  {app.icon || "📱"}
+                </div>
+              )}
+            </div>
+            <div className="mb-2 flex items-center justify-between">
+              <span
+                className={`rounded px-2.5 py-1 text-[10px] font-bold uppercase ${
+                  app.status === "released"
+                    ? "bg-green-500/10 text-green-500"
+                    : app.status === "coming_soon"
+                      ? "bg-amber-500/10 text-amber-500"
+                      : "bg-slate-500/10 text-slate-500"
+                }`}
+              >
+                {app.status === "coming_soon" ? "Coming Soon" : app.status}
+              </span>
+              <div className="flex gap-1">
+                <Zap size={14} className="text-slate-400" />
+              </div>
+            </div>
+            <h4 className="mb-1 text-xl font-bold text-slate-900 dark:text-white">
+              {app.name}
+            </h4>
+            <p className="mb-6 text-sm text-slate-500">{app.description}</p>
+            <button className="w-full rounded-lg border border-slate-200 py-3 text-sm font-bold transition-all hover:border-primary hover:bg-primary hover:text-white dark:border-white/10">
+              View Project
+            </button>
+          </motion.div>
+        </Link>
+      ))}
     </div>
   )
 }

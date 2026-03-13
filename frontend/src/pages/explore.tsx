@@ -129,7 +129,11 @@ export function ExploreAppsPage() {
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => setSelectedApp(app)}
                 >
-                  <Link to={`/app/${app.slug}`} className="block">
+                  <Link
+                    to="/app/$slug"
+                    params={{ slug: app.slug }}
+                    className="block"
+                  >
                     <div className="group relative flex cursor-pointer flex-col rounded-xl border border-slate-200 bg-white p-5 transition-all hover:shadow-xl hover:shadow-primary/10 dark:border-primary/20 dark:bg-primary/5">
                       {/* Icon/Thumbnail */}
                       <div className="mb-5 flex items-start justify-between">
@@ -163,18 +167,10 @@ export function ExploreAppsPage() {
                       <div className="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-primary/10">
                         <div className="flex gap-2">
                           {app.apkUrl && (
-                            <Smartphone
-                              size={16}
-                              className="text-slate-400"
-                              title="Android"
-                            />
+                            <Smartphone size={16} className="text-slate-400" />
                           )}
                           {app.ipaUrl && (
-                            <Smartphone
-                              size={16}
-                              className="text-slate-400"
-                              title="iOS"
-                            />
+                            <Smartphone size={16} className="text-slate-400" />
                           )}
                         </div>
                         <span className="text-sm font-bold text-primary hover:underline">
