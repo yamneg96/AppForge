@@ -36,7 +36,7 @@ export function ExploreAppsPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <section className="border-b border-slate-200 bg-slate-50 px-6 py-10 dark:border-primary/10 dark:bg-white/[0.02]">
+      <section className="border-b border-border bg-background px-6 py-10 dark:border-primary/10 dark:bg-background">
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: -20 }}

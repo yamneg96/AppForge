@@ -4,13 +4,13 @@ import { Edit2, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api";
-
 export function Apps() {
   const { data, isLoading } = useQuery({
     queryKey: ["apps"],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/apps?limit=100`);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/apps?limit=100`,
+      );
       return response.data;
     },
   });
@@ -18,7 +18,7 @@ export function Apps() {
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this app?")) {
       try {
-        await axios.delete(`${API_URL}/apps/${id}`);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/apps/${id}`);
         // Refetch apps
         location.reload();
       } catch (error) {

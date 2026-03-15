@@ -22,7 +22,7 @@ export function LandingPage() {
   return (
     <div className="relative">
       {/* Hero Section */}
-      <section className="relative overflow-hidden px-6 pt-20 pb-32">
+      <section className="scrollbar-hide relative overflow-hidden px-6 pt-20 pb-32">
         {/* Background effects */}
         <div className="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" />
         <div className="pointer-events-none absolute top-0 left-1/2 h-full w-full -translate-x-1/2 opacity-20">
@@ -203,7 +203,7 @@ function FeaturedAppsSection() {
       {displayApps.map((app: any, idx: number) => (
         <Link key={app._id} to="/app/$slug" params={{ slug: app.slug }}>
           <motion.div
-            className="group dark:bg-background-dark/50 relative h-full cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 dark:border-white/5"
+            className="group relative h-full cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-primary hover:shadow-2xl hover:shadow-primary/5 dark:border-white/5 dark:bg-background"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: idx * 0.1 }}
