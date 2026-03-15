@@ -22,6 +22,8 @@ export const createAppSchema = z.object({
   techStack: z.array(z.string()).optional(),
   features: z.array(z.string()).optional(),
   downloadUrl: z.string().url().optional(),
+  apkUrl: z.string().url().optional(),
+  ipaUrl: z.string().url().optional(),
   playStoreUrl: z.string().url().optional(),
   appStoreUrl: z.string().url().optional(),
   betaUrl: z.string().url().optional(),

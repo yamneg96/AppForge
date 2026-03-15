@@ -1,13 +1,15 @@
 import { useParams } from "@tanstack/react-router"
 import { motion } from "framer-motion"
-import {
-  Download,
-  Share2,
-  MoreVertical,
-  ArrowRight,
-  ExternalLink,
-} from "lucide-react"
+import { Download, ArrowRight } from "lucide-react"
 import { useAppBySlug } from "@/lib/queries"
+
+function withImageKitAttachment(url: string) {
+  if (/(?:\?|&)ik-attachment=/.test(url)) {
+    return url
+  }
+
+  return `${url}${url.includes("?") ? "&" : "?"}ik-attachment=true`
+}
 
 export function AppDetailsPage() {
   const { slug } = useParams({ from: "/app/$slug" })
@@ -99,7 +101,7 @@ export function AppDetailsPage() {
         >
           {app.apkUrl && (
             <a
-              href={app.apkUrl}
+              href={withImageKitAttachment(app.apkUrl)}
               className="flex h-14 items-center justify-center gap-3 rounded-full border-2 border-border bg-background px-8 text-lg font-bold text-primary transition-all hover:bg-background dark:bg-background dark:text-primary dark:hover:bg-background"
             >
               <Download size={20} />
@@ -108,7 +110,7 @@ export function AppDetailsPage() {
           )}
           {app.ipaUrl && (
             <a
-              href={app.ipaUrl}
+              href={withImageKitAttachment(app.ipaUrl)}
               className="flex h-14 items-center justify-center gap-3 rounded-full border-2 border-border bg-background px-8 text-lg font-bold text-primary transition-all hover:bg-background dark:bg-background dark:text-primary dark:hover:bg-background"
             >
               <Download size={20} />

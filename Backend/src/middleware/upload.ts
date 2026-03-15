@@ -1,27 +1,6 @@
-import multer, { StorageEngine, FileFilterCallback } from "multer";
+import multer, { FileFilterCallback } from "multer";
 import path from "path";
-import fs from "fs";
 import { Request } from "express";
-
-// Create uploads directory if it doesn't exist
-const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure storage
-const storage: StorageEngine = multer.diskStorage({
-  destination: (req: Request, file: Express.Multer.File, cb: Function) => {
-    cb(null, uploadDir);
-  },
-  filename: (req: Request, file: Express.Multer.File, cb: Function) => {
-    // Create unique filename with timestamp
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext);
-    cb(null, `${name}-${uniqueSuffix}${ext}`);
-  },
-});
 
 // Filter files
 const fileFilter = (
@@ -29,26 +8,40 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: FileFilterCallback,
 ) => {
-  // Allow only image files (png, jpg, jpeg)
-  const allowedMimes = ["image/png", "image/jpeg", "image/jpg"];
-  const allowedExtensions = [".png", ".jpg", ".jpeg"];
+  const allowedMimes = [
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/webp",
+    "application/vnd.android.package-archive",
+    "application/octet-stream",
+    "application/x-ios-app",
+  ];
+  const allowedExtensions = [".png", ".jpg", ".jpeg", ".webp", ".apk", ".ipa"];
 
   const ext = path.extname(file.originalname).toLowerCase();
   const mime = file.mimetype;
 
-  if (allowedMimes.includes(mime) && allowedExtensions.includes(ext)) {
+  if (
+    allowedExtensions.includes(ext) &&
+    (allowedMimes.includes(mime) || mime === "")
+  ) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file type. Only PNG and JPG are allowed."));
+    cb(
+      new Error(
+        "Invalid file type. Only image, APK, and IPA files are allowed.",
+      ),
+    );
   }
 };
 
 // Create multer instance
 export const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit per file
+    fileSize: 100 * 1024 * 1024,
   },
 });
 
@@ -56,4 +49,6 @@ export const upload = multer({
 export const uploadAppFiles = upload.fields([
   { name: "icon", maxCount: 1 },
   { name: "screenshots", maxCount: 10 },
+  { name: "apkFile", maxCount: 1 },
+  { name: "ipaFile", maxCount: 1 },
 ]);

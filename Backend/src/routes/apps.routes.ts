@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getApps,
+  getAppById,
   getAppBySlug,
   createApp,
   updateApp,
@@ -15,6 +16,7 @@ const router = Router();
 
 // Public routes (read-only)
 router.get("/", getApps);
+router.get("/id/:id", getAppById);
 router.get("/:slug", getAppBySlug);
 
 // Protected routes (write operations)

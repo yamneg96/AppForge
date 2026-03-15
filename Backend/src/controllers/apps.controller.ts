@@ -1,5 +1,13 @@
 import { Request, Response } from "express";
 import { App } from "../models/App.js";
+import { uploadMulterFileToImageKit } from "../services/imagekit.service.js";
+
+type AppUploadFiles = {
+  icon?: Express.Multer.File[];
+  screenshots?: Express.Multer.File[];
+  apkFile?: Express.Multer.File[];
+  ipaFile?: Express.Multer.File[];
+};
 
 // GET all apps
 export async function getApps(req: Request, res: Response) {
@@ -30,6 +38,22 @@ export async function getAppBySlug(req: Request, res: Response) {
   try {
     const { slug } = req.params;
     const app = await App.findOne({ slug });
+
+    if (!app) {
+      return res.status(404).json({ error: "App not found" });
+    }
+
+    res.json(app);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch app" });
+  }
+}
+
+// GET app by id (admin)
+export async function getAppById(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const app = await App.findById(id);
 
     if (!app) {
       return res.status(404).json({ error: "App not found" });
@@ -91,8 +115,26 @@ export async function createApp(req: Request, res: Response) {
       }
     }
 
-    // Handle file uploads - for now, store URLs directly
-    // In a real scenario with ImageKit, you would upload files here
+    const files = (req.files || {}) as AppUploadFiles;
+
+    const iconUpload = files.icon?.[0]
+      ? await uploadMulterFileToImageKit(files.icon[0])
+      : null;
+
+    const screenshotUploads = files.screenshots?.length
+      ? await Promise.all(
+          files.screenshots.map((file) => uploadMulterFileToImageKit(file)),
+        )
+      : [];
+
+    const apkUpload = files.apkFile?.[0]
+      ? await uploadMulterFileToImageKit(files.apkFile[0])
+      : null;
+
+    const ipaUpload = files.ipaFile?.[0]
+      ? await uploadMulterFileToImageKit(files.ipaFile[0])
+      : null;
+
     const appData = {
       name,
       slug,
@@ -102,15 +144,13 @@ export async function createApp(req: Request, res: Response) {
       techStack: parsedTechStack || [],
       version: version || "1.0.0",
       features: parsedFeatures || [],
-      apkUrl: apkUrl || null,
-      ipaUrl: ipaUrl || null,
+      apkUrl: apkUpload?.url || apkUrl || null,
+      ipaUrl: ipaUpload?.url || ipaUrl || null,
       playStoreUrl: playStoreUrl || null,
       appStoreUrl: appStoreUrl || null,
       githubUrl: githubUrl || null,
-      icon: req.files?.icon ? `/uploads/${req.files.icon[0].filename}` : null,
-      screenshots: req.files?.screenshots
-        ? req.files.screenshots.map((f: any) => `/uploads/${f.filename}`)
-        : [],
+      icon: iconUpload?.url || null,
+      screenshots: screenshotUploads.map((upload) => upload.url),
     };
 
     const app = new App(appData);
@@ -127,6 +167,7 @@ export async function updateApp(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const updates = { ...req.body };
+    const files = (req.files || {}) as AppUploadFiles;
 
     // Parse techStack and features if they're JSON strings
     if (updates.techStack && typeof updates.techStack === "string") {
@@ -146,14 +187,26 @@ export async function updateApp(req: Request, res: Response) {
     }
 
     // Handle new file uploads
-    if (req.files?.icon) {
-      updates.icon = `/uploads/${req.files.icon[0].filename}`;
+    if (files.icon?.[0]) {
+      const iconUpload = await uploadMulterFileToImageKit(files.icon[0]);
+      updates.icon = iconUpload.url;
     }
 
-    if (req.files?.screenshots && req.files.screenshots.length > 0) {
-      updates.screenshots = req.files.screenshots.map(
-        (f: any) => `/uploads/${f.filename}`,
+    if (files.screenshots && files.screenshots.length > 0) {
+      const screenshotUploads = await Promise.all(
+        files.screenshots.map((file) => uploadMulterFileToImageKit(file)),
       );
+      updates.screenshots = screenshotUploads.map((upload) => upload.url);
+    }
+
+    if (files.apkFile?.[0]) {
+      const apkUpload = await uploadMulterFileToImageKit(files.apkFile[0]);
+      updates.apkUrl = apkUpload.url;
+    }
+
+    if (files.ipaFile?.[0]) {
+      const ipaUpload = await uploadMulterFileToImageKit(files.ipaFile[0]);
+      updates.ipaUrl = ipaUpload.url;
     }
 
     // Check if trying to change slug to existing slug

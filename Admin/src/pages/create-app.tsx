@@ -2,12 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { useAuth } from "@/lib/auth-context";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export function CreateApp() {
   const navigate = useNavigate();
+  const { token, sessionId } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -26,7 +29,16 @@ export function CreateApp() {
   const [files, setFiles] = useState({
     icon: null as File | null,
     screenshots: [] as File[],
+    apkFile: null as File | null,
+    ipaFile: null as File | null,
   });
+
+  const appendIfNotEmpty = (payload: FormData, key: string, value: string) => {
+    const trimmed = value.trim();
+    if (trimmed) {
+      payload.append(key, trimmed);
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -52,8 +64,27 @@ export function CreateApp() {
     }
   };
 
+  const handleApkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFiles((prev) => ({ ...prev, apkFile: e.target.files![0] }));
+    }
+  };
+
+  const handleIpaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFiles((prev) => ({ ...prev, ipaFile: e.target.files![0] }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+
+    if (!token || !sessionId) {
+      setSubmitError("Your admin session has expired. Please login again.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -63,14 +94,18 @@ export function CreateApp() {
       formDataToSend.append("name", formData.name);
       formDataToSend.append("slug", formData.slug);
       formDataToSend.append("description", formData.description);
-      formDataToSend.append("longDescription", formData.longDescription);
+      appendIfNotEmpty(
+        formDataToSend,
+        "longDescription",
+        formData.longDescription,
+      );
       formDataToSend.append("status", formData.status);
       formDataToSend.append("version", formData.version);
-      formDataToSend.append("apkUrl", formData.apkUrl);
-      formDataToSend.append("ipaUrl", formData.ipaUrl);
-      formDataToSend.append("playStoreUrl", formData.playStoreUrl);
-      formDataToSend.append("appStoreUrl", formData.appStoreUrl);
-      formDataToSend.append("githubUrl", formData.githubUrl);
+      appendIfNotEmpty(formDataToSend, "apkUrl", formData.apkUrl);
+      appendIfNotEmpty(formDataToSend, "ipaUrl", formData.ipaUrl);
+      appendIfNotEmpty(formDataToSend, "playStoreUrl", formData.playStoreUrl);
+      appendIfNotEmpty(formDataToSend, "appStoreUrl", formData.appStoreUrl);
+      appendIfNotEmpty(formDataToSend, "githubUrl", formData.githubUrl);
 
       // Add techStack and features as JSON
       formDataToSend.append(
@@ -98,21 +133,51 @@ export function CreateApp() {
       }
 
       if (files.screenshots.length > 0) {
-        files.screenshots.forEach((file, index) => {
+        files.screenshots.forEach((file) => {
           formDataToSend.append(`screenshots`, file);
         });
       }
 
+      if (files.apkFile) {
+        formDataToSend.append("apkFile", files.apkFile);
+      }
+
+      if (files.ipaFile) {
+        formDataToSend.append("ipaFile", files.ipaFile);
+      }
+
       await axios.post(`${API_URL}/apps`, formDataToSend, {
+        withCredentials: true,
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+          "X-Session-Token": sessionId,
         },
       });
 
       navigate("/apps");
     } catch (error) {
-      alert("Failed to create app");
-      console.error(error);
+      if (axios.isAxiosError(error)) {
+        const apiError = error.response?.data?.error;
+        const validationErrors = error.response?.data?.errors;
+
+        if (validationErrors && typeof validationErrors === "object") {
+          const firstValidationError = Object.values(validationErrors)[0];
+          setSubmitError(
+            typeof firstValidationError === "string"
+              ? firstValidationError
+              : "Please check your input values.",
+          );
+        } else if (typeof apiError === "string") {
+          setSubmitError(apiError);
+        } else if (error.response?.status === 401) {
+          setSubmitError("Unauthorized. Please login again and try once more.");
+        } else {
+          setSubmitError("Failed to create app. Please try again.");
+        }
+      } else {
+        setSubmitError("Failed to create app. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -133,6 +198,14 @@ export function CreateApp() {
         onSubmit={handleSubmit}
         className="bg-card rounded-lg border border-border p-6 max-w-2xl space-y-6"
       >
+        {submitError && (
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3">
+            <p className="text-sm font-medium text-red-600 dark:text-red-400">
+              {submitError}
+            </p>
+          </div>
+        )}
+
         {/* App Name */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
@@ -295,10 +368,46 @@ export function CreateApp() {
           )}
         </div>
 
-        {/* APK URL */}
+        {/* APK File Upload */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
-            APK Download URL
+            APK File (.apk)
+          </label>
+          <input
+            type="file"
+            accept=".apk,application/vnd.android.package-archive"
+            onChange={handleApkChange}
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          {files.apkFile && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Selected APK: {files.apkFile.name}
+            </p>
+          )}
+        </div>
+
+        {/* IPA File Upload */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            IPA File (.ipa)
+          </label>
+          <input
+            type="file"
+            accept=".ipa,application/octet-stream"
+            onChange={handleIpaChange}
+            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          {files.ipaFile && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Selected IPA: {files.ipaFile.name}
+            </p>
+          )}
+        </div>
+
+        {/* APK URL (Optional fallback) */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            APK Download URL (Optional)
           </label>
           <input
             type="url"
@@ -310,10 +419,10 @@ export function CreateApp() {
           />
         </div>
 
-        {/* IPA URL */}
+        {/* IPA URL (Optional fallback) */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
-            IPA Download URL
+            IPA Download URL (Optional)
           </label>
           <input
             type="url"
